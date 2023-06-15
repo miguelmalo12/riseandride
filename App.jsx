@@ -61,10 +61,10 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <Header handleLogoPress={handleLogoPress} />
-      <Btn onPress={handlePress} title='Ready To Go!' />
       {weatherData && (
         <View style={styles.weatherContainer}>
-          <Text>{weatherData.current.weather[0].main} - {capitalize(weatherData.current.weather[0].description)}</Text>
+          <Text style={styles.weatherTitle}>Current Weather:</Text>
+          <Text style={styles.weatherDescription}>{weatherData.current.weather[0].main} - {capitalize(weatherData.current.weather[0].description)}</Text>
           <Text>Temperature: {weatherData.current.temp.toFixed(1)} °C</Text>
           <Text>Feels Like: {weatherData.current.feels_like.toFixed(1)} °C</Text>
           <Text>Min Temperature: {weatherData.daily[0].temp.min.toFixed(1)} °C</Text>
@@ -74,12 +74,19 @@ export default function App() {
           <Text>Wind Speed: {(weatherData.current.wind_speed * 3.6).toFixed(1)} km/h</Text>
         </View>
       )}
+      
       {forecastAt5PM && (
-        <View>
-          <Text>Forecast at 5PM:</Text>
+        <View style={styles.weatherContainer}>
+          <Text style={styles.weatherTitle}>Forecast at 5PM:</Text>
+          <Text style={styles.weatherDescription}>{forecastAt5PM.weather[0].main} - {capitalize(forecastAt5PM.weather[0].description)}</Text>
           <Text>Temperature: {forecastAt5PM.temp.toFixed(1)} °C</Text>
+          <Text>Feels Like: {forecastAt5PM.feels_like.toFixed(1)} °C</Text>
+          <Text>Prob of Rain: {(forecastAt5PM.pop * 100).toFixed(1)} %</Text>
+          <Text>Cloud Coverage: {forecastAt5PM.clouds.toFixed(1)} %</Text>
+          <Text>Wind Speed: {(forecastAt5PM.wind_speed * 3.6).toFixed(1)} km/h</Text>
         </View>
       )}
+      <Btn onPress={handlePress} title='Ready To Go!' />
     </View>
   );
 
@@ -94,5 +101,17 @@ const styles = StyleSheet.create({
   weatherContainer: {
     marginTop: 20,
     alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    padding: 20,
+    borderRadius: 5,
+  },
+  weatherTitle: {
+    fontSize: 20, 
+    fontWeight: 'bold',
+  },
+  weatherDescription: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    marginBottom: 10,
   },
 });
