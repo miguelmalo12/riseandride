@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { ScrollView, StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import axios from 'axios';
 
 import Header from './components/Header';
@@ -9,7 +9,8 @@ import WeatherIcon from './components/WeatherIcon';
 
 export default function App() {
   const [weatherData, setWeatherData] = useState(null);
-  const [forecastAt5PM, setForecastAt5PM] = useState(null);
+  const [morningForecast, setMorningForecast] = useState(null);
+  const [eveningForecast, setEveningForecast] = useState(null);
 
   const handlePress = () => {
     const apiKey = '3b74bbf9139c13f6add6711c77753049';
@@ -17,31 +18,43 @@ export default function App() {
     const lonVan = '-123.116226';
     const allInOneUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latVan}&lon=${lonVan}&exclude=minutely&appid=${apiKey}&units=metric`;
     axios.get(allInOneUrl)
-      .then(response => {
-        setWeatherData(response.data);
+    .then(response => {
+      setWeatherData(response.data);
 
-        // Function to get the weather data for 5pm
-        const hourlyData = response.data.hourly;
-        let forecast;
+      // Function to get the weather data for 9am and 5pm
+      const hourlyData = response.data.hourly;
+      let morningForecast, eveningForecast;
 
-        for (let i = 0; i < hourlyData.length; i++) {
-          const date = new Date(hourlyData[i].dt * 1000);
-          const timezoneOffset = date.getTimezoneOffset() * 60;
-          const localDate = new Date((hourlyData[i].dt + timezoneOffset + response.data.timezone_offset) * 1000);
+      for (let i = 0; i < hourlyData.length; i++) {
+        const date = new Date(hourlyData[i].dt * 1000);
+        const timezoneOffset = date.getTimezoneOffset() * 60;
+        const localDate = new Date((hourlyData[i].dt + timezoneOffset + response.data.timezone_offset) * 1000);
 
-          if (localDate.getUTCHours() === 17) {
-            forecast = hourlyData[i];
-            break;
-          }
+        if (localDate.getHours() === 9 && !morningForecast) {
+          morningForecast = hourlyData[i];
         }
-
-        if (forecast) {
-          setForecastAt5PM(forecast);
-          console.log('5PM Forecast found!');
-        } else {
-          console.log('No forecast at 5pm found');
+        if (localDate.getHours() === 17 && !eveningForecast) {
+          eveningForecast = hourlyData[i];
         }
-      })
+        if (morningForecast && eveningForecast) {
+          break;
+        }
+      }
+
+      if (morningForecast) {
+        setMorningForecast(morningForecast);
+        console.log('9AM Forecast found!');
+      } else {
+        console.log('No forecast at 9am found');
+      }
+
+      if (eveningForecast) {
+        setEveningForecast(eveningForecast);
+        console.log('5PM Forecast found!');
+      } else {
+        console.log('No forecast at 5pm found');
+      }
+    })
       .catch(error => {
         console.error(error);
       });
@@ -50,7 +63,8 @@ export default function App() {
   // Function to refresh the page when clicking on the logo
   const handleLogoPress = () => {
     setWeatherData(null);
-    setForecastAt5PM(null);
+    setMorningForecast(null);
+    setEveningForecast(null);
   };
 
   // Function to capitalize the first letter of each word in a string
@@ -61,8 +75,9 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <Header handleLogoPress={handleLogoPress} />     
-        {weatherData && (
+      <Header handleLogoPress={handleLogoPress} />
+      {/* // Card showing current weather    */}
+        {/* {weatherData && (
           <View style={styles.weatherContainer}>
             <WeatherIcon iconCode={weatherData.current.weather[0].icon} />
             <Text style={styles.weatherTitle}>Current Weather:</Text>
@@ -73,18 +88,31 @@ export default function App() {
             <Text>Cloud Coverage: {weatherData.current.clouds.toFixed(1)} %</Text>
             <Text>Wind Speed: {(weatherData.current.wind_speed * 3.6).toFixed(1)} km/h</Text>
           </View>
-        )}
+        )} */}
         
-        {forecastAt5PM && (
+        {morningForecast && (
           <View style={styles.weatherContainer}>
-            <WeatherIcon iconCode={forecastAt5PM.weather[0].icon} />
+            <WeatherIcon iconCode={morningForecast.weather[0].icon} />
+            <Text style={styles.weatherTitle}>Forecast at 9AM:</Text>
+            <Text style={styles.weatherDescription}>{morningForecast.weather[0].main} - {capitalize(morningForecast.weather[0].description)}</Text>
+            <Text>Temperature: {morningForecast.temp.toFixed(1)} °C</Text>
+            <Text>Feels Like: {morningForecast.feels_like.toFixed(1)} °C</Text>
+            <Text>Prob of Rain: {(morningForecast.pop * 100).toFixed(1)} %</Text>
+            <Text>Cloud Coverage: {morningForecast.clouds.toFixed(1)} %</Text>
+            <Text>Wind Speed: {(morningForecast.wind_speed * 3.6).toFixed(1)} km/h</Text>
+          </View>
+        )}
+
+        {eveningForecast && (
+          <View style={styles.weatherContainer}>
+            <WeatherIcon iconCode={eveningForecast.weather[0].icon} />
             <Text style={styles.weatherTitle}>Forecast at 5PM:</Text>
-            <Text style={styles.weatherDescription}>{forecastAt5PM.weather[0].main} - {capitalize(forecastAt5PM.weather[0].description)}</Text>
-            <Text>Temperature: {forecastAt5PM.temp.toFixed(1)} °C</Text>
-            <Text>Feels Like: {forecastAt5PM.feels_like.toFixed(1)} °C</Text>
-            <Text>Prob of Rain: {(forecastAt5PM.pop * 100).toFixed(1)} %</Text>
-            <Text>Cloud Coverage: {forecastAt5PM.clouds.toFixed(1)} %</Text>
-            <Text>Wind Speed: {(forecastAt5PM.wind_speed * 3.6).toFixed(1)} km/h</Text>
+            <Text style={styles.weatherDescription}>{eveningForecast.weather[0].main} - {capitalize(eveningForecast.weather[0].description)}</Text>
+            <Text>Temperature: {eveningForecast.temp.toFixed(1)} °C</Text>
+            <Text>Feels Like: {eveningForecast.feels_like.toFixed(1)} °C</Text>
+            <Text>Prob of Rain: {(eveningForecast.pop * 100).toFixed(1)} %</Text>
+            <Text>Cloud Coverage: {eveningForecast.clouds.toFixed(1)} %</Text>
+            <Text>Wind Speed: {(eveningForecast.wind_speed * 3.6).toFixed(1)} km/h</Text>
           </View>
         )}
 
@@ -97,7 +125,6 @@ export default function App() {
       <Btn onPress={handlePress} title='Ready To Go!' />
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({

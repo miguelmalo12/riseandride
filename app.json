@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9b75bbe8-14ca-4f92-a237-c3bc9919fb91"
+      }
+    },
+    "owner": "miguelmalo12"
   }
 }
