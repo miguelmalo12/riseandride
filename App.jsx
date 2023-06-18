@@ -123,16 +123,30 @@ export default function App() {
   }
   
   function getTemperatureColor(temp) {
-    if (temp < 0) {
+    if (temp < 6) {
       return '#0000FF'; // Very Cold
-    } else if (temp < 10) {
+    } else if (temp < 12) {
       return '#00BFFF'; // Cold
     } else if (temp < 20) {
       return '#008000'; // Comfortable
-    } else if (temp < 30) {
+    } else if (temp < 25) {
       return '#FFA500'; // Hot
     } else {
       return '#FF0000'; // Very Hot
+    }
+  }
+
+  function getPrecipitationColor(pop) {
+    if (pop < 20) {
+      return '#7CFC00'; // No Precipitation
+    } else if (pop < 40) {
+      return '#9ACD32'; // Low Probability
+    } else if (pop < 60) {
+      return '#FFD700'; // Medium Probability
+    } else if (pop < 80) {
+      return '#FFA500'; // High Probability
+    } else {
+      return '#FF0000'; // Very High Probability
     }
   }
   
@@ -171,30 +185,54 @@ export default function App() {
               <WeatherIcon iconCode={morningForecast.weather[0].icon} />
               <Text style={styles.weatherTitle}>Forecast at 9AM</Text>
               <Text style={styles.weatherDescription}>{morningForecast.weather[0].main} - {capitalize(morningForecast.weather[0].description)}</Text>
-              <Text style={styles.bodyText}>Temperature: {morningForecast.temp.toFixed(1)} °C</Text>
-              <Text style={styles.bodyText}>Feels Like: {morningForecast.feels_like.toFixed(1)} °C</Text>
-              <Text style={styles.bodyText}>Prob of Rain: {(morningForecast.pop * 100).toFixed(1)} %</Text>
-              <Text style={styles.bodyText}>Cloud Coverage: {morningForecast.clouds.toFixed(1)} %</Text>
-              <Text style={styles.bodyText}>Wind Speed: {(morningForecast.wind_speed * 3.6).toFixed(1)} km/h</Text>
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Temp: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(morningForecast.temp)}]}>{morningForecast.temp.toFixed(1)} °C</Text>
+              </View>              
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Feels: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(morningForecast.feels_like)}]}>{morningForecast.feels_like.toFixed(1)} °C</Text>
+              </View> 
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>PoP: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getPrecipitationColor(morningForecast.pop * 100)}]}>{(morningForecast.pop * 100).toFixed(0)} %</Text>
+              </View>
+              <Text style={styles.bodyText}>Clouds: {morningForecast.clouds.toFixed(0)} %</Text>
+              <Text style={styles.bodyText}>Wind: {(morningForecast.wind_speed * 3.6).toFixed(1)} km/h</Text>
             </View>
 
             <View style={styles.weatherContainer}>
               <WeatherIcon iconCode={eveningForecast.weather[0].icon} />
               <Text style={styles.weatherTitle}>Forecast at 5PM</Text>
               <Text style={styles.weatherDescription}>{eveningForecast.weather[0].main} - {capitalize(eveningForecast.weather[0].description)}</Text>
-              <Text style={[styles.bodyText, {color: getTemperatureColor(eveningForecast.temp)}]}>Temperature: {eveningForecast.temp.toFixed(1)} °C</Text>
-              <Text style={styles.bodyText}>Feels Like: {eveningForecast.feels_like.toFixed(1)} °C</Text>
-              <Text style={styles.bodyText}>Prob of Rain: {(eveningForecast.pop * 100).toFixed(1)} %</Text>
-              <Text style={styles.bodyText}>Cloud Coverage: {eveningForecast.clouds.toFixed(1)} %</Text>
-              <Text style={styles.bodyText}>Wind Speed: {(eveningForecast.wind_speed * 3.6).toFixed(1)} km/h</Text>
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Temp: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(eveningForecast.temp)}]}>{eveningForecast.temp.toFixed(1)} °C</Text>
+              </View>              
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Feels: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(eveningForecast.feels_like)}]}>{eveningForecast.feels_like.toFixed(1)} °C</Text>
+              </View>
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>PoP: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getPrecipitationColor(eveningForecast.pop * 100)}]}>{(eveningForecast.pop * 100).toFixed(0)} %</Text>
+              </View>              
+              <Text style={styles.bodyText}>Clouds: {eveningForecast.clouds.toFixed(0)} %</Text>
+              <Text style={styles.bodyText}>Wind: {(eveningForecast.wind_speed * 3.6).toFixed(1)} km/h</Text>
             </View>
           </View>
         )}
 
         {weatherData && (
           <View style={styles.minMaxContainer}>
-            <Text>Min Temperature: {weatherData.daily[0].temp.min.toFixed(1)} °C</Text>
-            <Text>Max Temperature: {weatherData.daily[0].temp.max.toFixed(1)} °C</Text>
+            <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Min Temperature: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(weatherData.daily[0].temp.min)}]}>{weatherData.daily[0].temp.min.toFixed(1)} °C</Text>
+              </View>              
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Max Temperature: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(weatherData.daily[0].temp.max)}]}>{weatherData.daily[0].temp.max.toFixed(1)} °C</Text>
+              </View> 
           </View>
         )}
       <Btn onPress={handlePress} title='Ready To Go!' />
@@ -243,8 +281,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'left',
   },
+  dataRow: {
+    flexDirection: 'row',
+  },
   bodyText: {
     fontSize: 14,
     textAlign: 'left',
+  },
+  bodyData: {
+    fontWeight: 'bold',
   },
 });
