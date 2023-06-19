@@ -9,8 +9,10 @@ import WeatherIcon from './components/WeatherIcon';
 
 export default function App() {
   const [goingToWorkBtn, setGoingToWorkBtn] = useState(true);
+  const [goingOutNowBtn, setGoingOutNowBtn] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [weatherData, setWeatherData] = useState(null);
+  const [currentData, setCurrentData] = useState(null);
   const [morningForecast, setMorningForecast] = useState(null);
   const [eveningForecast, setEveningForecast] = useState(null);
 
@@ -70,16 +72,40 @@ export default function App() {
       console.log('Outfit recommendation:', outfit);
     }
     setGoingToWorkBtn(false);
+    setGoingOutNowBtn(false);
   };
 
   const handlePressGoOut = () => {
-    
+    setIsLoading(true);
+    const apiKey = '3b74bbf9139c13f6add6711c77753049';
+    const latVan = '49.325483';
+    const lonVan = '-123.127039';
+    const allInOneUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latVan}&lon=${lonVan}&exclude=minutely&appid=${apiKey}&units=metric`;
+    axios.get(allInOneUrl)
+    .then(response => {
+      setCurrentData(response.data);
+      
+      setIsLoading(false);
+    })
+    .catch(error => {
+      console.error(error);
+      setIsLoading(false);
+    });
+
+    if (morningForecast && eveningForecast) {
+      const outfit = getOutfitRecommendation(morningForecast, eveningForecast);
+      console.log('Outfit recommendation:', outfit);
+    }
+    setGoingToWorkBtn(false);
+    setGoingOutNowBtn(false);
   };
 
   // Function to refresh the page when clicking
   const handleBackHome = () => {
     setGoingToWorkBtn(true);
+    setGoingOutNowBtn(true);
     setWeatherData(null);
+    setCurrentData(null);
     setMorningForecast(null);
     setEveningForecast(null);
   };
@@ -232,18 +258,40 @@ export default function App() {
         )}
 
         {/* // Card showing current weather    */}
-        {/* {weatherData && (
+        {currentData && (
           <View style={styles.weatherContainer}>
-            <WeatherIcon iconCode={weatherData.current.weather[0].icon} />
-            <Text style={styles.weatherTitle}>Current Weather:</Text>
-            <Text style={styles.weatherDescription}>{weatherData.current.weather[0].main} - {capitalize(weatherData.current.weather[0].description)}</Text>
-            <Text>Temperature: {weatherData.current.temp.toFixed(1)} °C</Text>
-            <Text>Feels Like: {weatherData.current.feels_like.toFixed(1)} °C</Text>
-            <Text>Prob of Rain: {(weatherData.daily[0].pop * 100).toFixed(1)} %</Text>
-            <Text>Cloud Coverage: {weatherData.current.clouds.toFixed(1)} %</Text>
-            <Text>Wind Speed: {(weatherData.current.wind_speed * 3.6).toFixed(1)} km/h</Text>
+            <WeatherIcon iconCode={currentData.current.weather[0].icon} />
+            <Text style={styles.weatherTitle}>Current Weather</Text>
+            <Text style={styles.weatherDescription}>{currentData.current.weather[0].main} - {capitalize(currentData.current.weather[0].description)}</Text>
+            <View style={styles.dataRow}>
+              <Text style={styles.bodyText}>Temp: </Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.current.temp)}]}>{currentData.current.temp.toFixed(1)} °C</Text>
+            </View> 
+            <View style={styles.dataRow}>
+              <Text style={styles.bodyText}>Feels: </Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.current.feels_like)}]}>{currentData.current.feels_like.toFixed(1)} °C</Text>
+            </View>     
+            <View style={styles.dataRow}>
+              <Text style={styles.bodyText}>PoP: </Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].pop * 100)}]}>{(currentData.daily[0].pop * 100).toFixed(1)} °C</Text>
+            </View> 
+            <Text>Clouds: {currentData.current.clouds.toFixed(0)} %</Text>
+            <Text>Wind: {(currentData.current.wind_speed * 3.6).toFixed(1)} km/h</Text>
           </View>
-        )} */}
+        )}
+
+        {currentData && (
+          <View style={styles.minMaxContainer}>
+            <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Min Temperature: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].temp.min)}]}>{currentData.daily[0].temp.min.toFixed(1)} °C</Text>
+              </View>              
+              <View style={styles.dataRow}>
+                <Text style={styles.bodyText}>Max Temperature: </Text>
+                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].temp.max)}]}>{currentData.daily[0].temp.max.toFixed(1)} °C</Text>
+              </View> 
+          </View>
+        )}
 
         {weatherData && (
           <View style={styles.minMaxContainer}>
@@ -261,6 +309,10 @@ export default function App() {
         <Btn onPress={handlePress} title='Going to work!' />
       )}
 
+      {goingOutNowBtn && (
+        <Btn onPress={handlePressGoOut} title='Going Out Now!' />
+      )}
+
       {isLoading && (
         <ActivityIndicator style={styles.activityIndicator} size='large' color='#FE633D' />
       )}
@@ -269,8 +321,12 @@ export default function App() {
             <Btn onPress={handleBackHome} title='Back Home' />
       )}
 
+      {currentData && (
+            <Btn onPress={handleBackHome} title='Back Home' />
+      )}
+
       
-      {/* <Btn onPress={handlePressGoOut} title='Going Out Now!' /> */}
+      
     </View>
   );
 }
@@ -300,7 +356,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 5,
-    elevation: 5,
+    elevation: 3,
   },
   minMaxContainer: {
     marginTop: 20,
