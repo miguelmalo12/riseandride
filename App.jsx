@@ -16,7 +16,7 @@ export default function App() {
   const [morningForecast, setMorningForecast] = useState(null);
   const [eveningForecast, setEveningForecast] = useState(null);
 
-  // Shows all data cards when the button is pressed
+  // Shows going to work data
   const handlePress = () => {
     setIsLoading(true);
     const apiKey = '3b74bbf9139c13f6add6711c77753049';
@@ -68,13 +68,14 @@ export default function App() {
     });
 
     if (morningForecast && eveningForecast) {
-      const outfit = getOutfitRecommendation(morningForecast, eveningForecast);
+      const outfit = getOutfitWork(morningForecast, eveningForecast);
       console.log('Outfit recommendation:', outfit);
     }
     setGoingToWorkBtn(false);
     setGoingOutNowBtn(false);
   };
 
+  // Shows going out now data
   const handlePressGoOut = () => {
     setIsLoading(true);
     const apiKey = '3b74bbf9139c13f6add6711c77753049';
@@ -93,7 +94,7 @@ export default function App() {
     });
 
     if (morningForecast && eveningForecast) {
-      const outfit = getOutfitRecommendation(morningForecast, eveningForecast);
+      const outfit = getOutfitWork(morningForecast, eveningForecast);
       console.log('Outfit recommendation:', outfit);
     }
     setGoingToWorkBtn(false);
@@ -115,14 +116,25 @@ export default function App() {
     return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
 
-  // Function to get the outfit recommendation based on the weather data
-  function getOutfitRecommendation(morningForecast, eveningForecast) {
+  // Function to get the outfit recommendation for WORK
+  function getOutfitWork(morningForecast, eveningForecast) {
     let outfit = {
       upperPart: '',
       lowerPart: '',
       waterproofPants: 'No',
       gloves: 'No'
     };
+
+    // Upper part
+    if (morningForecast.temp > 21 || (morningForecast.temp > 19 && eveningForecast.temp > 26) || eveningForecast.temp > 28) {
+      outfit.upperPart = 'Short sleeve';
+    } else if (morningForecast.temp >= 12 && morningForecast.temp <= 21 || eveningForecast.temp < 20) {
+      outfit.upperPart = 'Thin second layer';
+    } else if ((morningForecast.weather[0].id.toString().startsWith('3') || morningForecast.weather[0].id.toString().startsWith('5') || morningForecast.weather[0].id.toString().startsWith('6')) && morningForecast.temp > 15 || eveningForecast.pop > 0.6) {
+      outfit.upperPart = 'Thin waterproof second layer';
+    } else if (morningForecast.temp < 12) {
+      outfit.upperPart = 'Thick second layer';
+    }
   
     // Long pants or short pants
     if (morningForecast.temp > 21 || (morningForecast.temp > 19 && eveningForecast.temp > 26) || eveningForecast.temp > 28) {
@@ -139,19 +151,48 @@ export default function App() {
       outfit.waterproofPants = outfit.waterproofPants === 'Yes at 9AM' ? 'Yes at 9AM and 5PM' : 'Yes at 5PM';
     }
   
+    // Gloves
+    if (morningForecast.temp < 8) {
+      outfit.gloves = 'Yes';
+    }
+  
+    return outfit;
+  }
+
+  // Function to get the outfit recommendation for GOING OUT NOW
+  function getOutfitOutNow(currentData) {
+    let outfit = {
+      upperPart: '',
+      lowerPart: '',
+      waterproofPants: 'No',
+      gloves: 'No'
+    };
+
     // Upper part
-    if (morningForecast.temp > 21 || (morningForecast.temp > 19 && eveningForecast.temp > 26) || eveningForecast.temp > 28) {
+    if (currentData.current.temp > 21) {
       outfit.upperPart = 'Short sleeve';
-    } else if (morningForecast.temp >= 12 && morningForecast.temp <= 21 || eveningForecast.temp < 20) {
+    } else if (currentData.current.temp >= 12 && currentData.current.temp <= 21) {
       outfit.upperPart = 'Thin second layer';
-    } else if ((morningForecast.weather[0].id.toString().startsWith('3') || morningForecast.weather[0].id.toString().startsWith('5') || morningForecast.weather[0].id.toString().startsWith('6')) && morningForecast.temp > 15 || eveningForecast.pop > 0.6) {
+    } else if ((currentData.current.weather[0].id.toString().startsWith('3') || currentData.current.weather[0].id.toString().startsWith('5') || currentData.current.weather[0].id.toString().startsWith('6')) && currentData.current.temp > 15) {
       outfit.upperPart = 'Thin waterproof second layer';
-    } else if (morningForecast.temp < 12) {
+    } else if (currentData.current.temp < 12) {
       outfit.upperPart = 'Thick second layer';
     }
   
+    // Long pants or short pants
+    if (currentData.current.temp > 21) {
+      outfit.lowerPart = 'Short pants';
+    } else {
+      outfit.lowerPart = 'Long pants';
+    }
+  
+    // Waterproof pants
+    if ((currentData.current.weather[0].id.toString().startsWith('3') || currentData.current.weather[0].id.toString().startsWith('5') || currentData.current.weather[0].id.toString().startsWith('6'))) {
+      outfit.waterproofPants = 'Yes';
+    }
+  
     // Gloves
-    if (morningForecast.temp < 8) {
+    if (currentData.current.temp < 8) {
       outfit.gloves = 'Yes';
     }
   
@@ -190,29 +231,32 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <Header handleBackHome={handleBackHome} />
+
+      {/* Outfit Recommendation Going to Work */}
         {morningForecast && eveningForecast && (
           <View>
             <View>
               <Text style={styles.outfitTitle}>Outfit Recommendation:</Text>
             </View>
             <View style={styles.iconsContainer}>
-              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Short sleeve' && <Image source={require('./assets/icons/upper-short.png')} style={styles.outfitImage} />}
-              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Thin second layer' && <Image source={require('./assets/icons/upper-long.png')} style={styles.outfitImage} />}
-              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Thin waterproof second layer' && <Image source={require('./assets/icons/upper-long-w.png')} style={styles.outfitImage} />}
-              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Thick second layer' && <Image source={require('./assets/icons/upper-jacket.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).upperPart === 'Short sleeve' && <Image source={require('./assets/icons/upper-short.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).upperPart === 'Thin second layer' && <Image source={require('./assets/icons/upper-long.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).upperPart === 'Thin waterproof second layer' && <Image source={require('./assets/icons/upper-long-w.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).upperPart === 'Thick second layer' && <Image source={require('./assets/icons/upper-jacket.png')} style={styles.outfitImage} />}
 
-              {getOutfitRecommendation(morningForecast, eveningForecast).lowerPart === 'Short pants' && <Image source={require('./assets/icons/lower-short.png')} style={styles.outfitImage} />}
-              {getOutfitRecommendation(morningForecast, eveningForecast).lowerPart === 'Long pants' && <Image source={require('./assets/icons/lower-long.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).lowerPart === 'Short pants' && <Image source={require('./assets/icons/lower-short.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).lowerPart === 'Long pants' && <Image source={require('./assets/icons/lower-long.png')} style={styles.outfitImage} />}
               
-              {getOutfitRecommendation(morningForecast, eveningForecast).waterproofPants === 'Yes at 9AM' && <Image source={require('./assets/icons/lower-long-w.png')} style={styles.outfitImage} />}
-              {getOutfitRecommendation(morningForecast, eveningForecast).waterproofPants === 'Yes at 9AM and 5PM' && <Image source={require('./assets/icons/lower-long-w.png')} style={styles.outfitImage} />}
-              {getOutfitRecommendation(morningForecast, eveningForecast).waterproofPants === 'Yes at 5PM' && <Image source={require('./assets/icons/lower-long-w-5PM.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).waterproofPants === 'Yes at 9AM' && <Image source={require('./assets/icons/lower-long-w.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).waterproofPants === 'Yes at 9AM and 5PM' && <Image source={require('./assets/icons/lower-long-w.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).waterproofPants === 'Yes at 5PM' && <Image source={require('./assets/icons/lower-long-w-5PM.png')} style={styles.outfitImage} />}
 
-              {getOutfitRecommendation(morningForecast, eveningForecast).gloves === 'Yes' && <Image source={require('./assets/icons/gloves.png')} style={styles.outfitImage} />}
+              {getOutfitWork(morningForecast, eveningForecast).gloves === 'Yes' && <Image source={require('./assets/icons/gloves.png')} style={styles.outfitImage} />}
             </View>
           </View>
         )}
 
+        {/* // Cards showing 9AM and 5PM weather    */}
         {morningForecast && eveningForecast && (
           <View style={styles.forecastContainer}>
             <View style={styles.weatherContainer}>
@@ -256,6 +300,28 @@ export default function App() {
             </View>
           </View>
         )}
+      
+      {/* Outfit Recommendation Going Out Now */}
+        {currentData && (
+            <View>
+              <View>
+                <Text style={styles.outfitTitle}>Outfit Recommendation:</Text>
+              </View>
+              <View style={styles.iconsContainer}>
+                {getOutfitOutNow(currentData).upperPart === 'Short sleeve' && <Image source={require('./assets/icons/upper-short.png')} style={styles.outfitImage} />}
+                {getOutfitOutNow(currentData).upperPart === 'Thin second layer' && <Image source={require('./assets/icons/upper-long.png')} style={styles.outfitImage} />}
+                {getOutfitOutNow(currentData).upperPart === 'Thin waterproof second layer' && <Image source={require('./assets/icons/upper-long-w.png')} style={styles.outfitImage} />}
+                {getOutfitOutNow(currentData).upperPart === 'Thick second layer' && <Image source={require('./assets/icons/upper-jacket.png')} style={styles.outfitImage} />}
+
+                {getOutfitOutNow(currentData).lowerPart === 'Short pants' && <Image source={require('./assets/icons/lower-short.png')} style={styles.outfitImage} />}
+                {getOutfitOutNow(currentData).lowerPart === 'Long pants' && <Image source={require('./assets/icons/lower-long.png')} style={styles.outfitImage} />}
+                
+                {getOutfitOutNow(currentData).waterproofPants === 'Yes' && <Image source={require('./assets/icons/lower-long-w.png')} style={styles.outfitImage} />}
+
+                {getOutfitOutNow(currentData).gloves === 'Yes' && <Image source={require('./assets/icons/gloves.png')} style={styles.outfitImage} />}
+              </View>
+            </View>
+          )}
 
         {/* // Card showing current weather    */}
         {currentData && (
@@ -280,6 +346,7 @@ export default function App() {
           </View>
         )}
 
+        {/* // Min and Max temperatures    */}
         {currentData && (
           <View style={styles.minMaxContainer}>
             <View style={styles.dataRow}>
@@ -325,8 +392,6 @@ export default function App() {
             <Btn onPress={handleBackHome} title='Back Home' />
       )}
 
-      
-      
     </View>
   );
 }
