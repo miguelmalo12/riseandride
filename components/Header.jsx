@@ -1,9 +1,9 @@
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-const Header = ({ handleLogoPress }) => {
+const Header = ({ handleBackHome }) => {
   return (
     <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={handleLogoPress}>
+        <TouchableOpacity onPress={handleBackHome}>
             <Image 
                 style={styles.logo}
                 source={require('../assets/icon.png')}

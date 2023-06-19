@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Image, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 
 import Header from './components/Header';
@@ -8,15 +8,18 @@ import Btn from './components/Btn';
 import WeatherIcon from './components/WeatherIcon';
 
 export default function App() {
+  const [goingToWorkBtn, setGoingToWorkBtn] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [weatherData, setWeatherData] = useState(null);
   const [morningForecast, setMorningForecast] = useState(null);
   const [eveningForecast, setEveningForecast] = useState(null);
 
   // Shows all data cards when the button is pressed
   const handlePress = () => {
+    setIsLoading(true);
     const apiKey = '3b74bbf9139c13f6add6711c77753049';
-    const latVan = '49.246292';
-    const lonVan = '-123.116226';
+    const latVan = '49.325483';
+    const lonVan = '-123.127039';
     const allInOneUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latVan}&lon=${lonVan}&exclude=minutely&appid=${apiKey}&units=metric`;
     axios.get(allInOneUrl)
     .then(response => {
@@ -55,20 +58,27 @@ export default function App() {
       } else {
         console.log('No forecast at 5pm found');
       }
+      setIsLoading(false);
     })
     .catch(error => {
       console.error(error);
+      setIsLoading(false);
     });
 
     if (morningForecast && eveningForecast) {
       const outfit = getOutfitRecommendation(morningForecast, eveningForecast);
       console.log('Outfit recommendation:', outfit);
     }
-
+    setGoingToWorkBtn(false);
   };
 
-  // Function to refresh the page when clicking on the logo
-  const handleLogoPress = () => {
+  const handlePressGoOut = () => {
+    
+  };
+
+  // Function to refresh the page when clicking
+  const handleBackHome = () => {
+    setGoingToWorkBtn(true);
     setWeatherData(null);
     setMorningForecast(null);
     setEveningForecast(null);
@@ -107,7 +117,7 @@ export default function App() {
     if (morningForecast.temp > 21 || (morningForecast.temp > 19 && eveningForecast.temp > 26) || eveningForecast.temp > 28) {
       outfit.upperPart = 'Short sleeve';
     } else if (morningForecast.temp >= 12 && morningForecast.temp <= 21 || eveningForecast.temp < 20) {
-      outfit.upperPart = 'Thin second layer ';
+      outfit.upperPart = 'Thin second layer';
     } else if ((morningForecast.weather[0].id.toString().startsWith('3') || morningForecast.weather[0].id.toString().startsWith('5') || morningForecast.weather[0].id.toString().startsWith('6')) && morningForecast.temp > 15 || eveningForecast.pop > 0.6) {
       outfit.upperPart = 'Thin waterproof second layer';
     } else if (morningForecast.temp < 12) {
@@ -150,32 +160,30 @@ export default function App() {
     }
   }
   
-
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <Header handleLogoPress={handleLogoPress} />
-      {/* // Card showing current weather    */}
-        {/* {weatherData && (
-          <View style={styles.weatherContainer}>
-            <WeatherIcon iconCode={weatherData.current.weather[0].icon} />
-            <Text style={styles.weatherTitle}>Current Weather:</Text>
-            <Text style={styles.weatherDescription}>{weatherData.current.weather[0].main} - {capitalize(weatherData.current.weather[0].description)}</Text>
-            <Text>Temperature: {weatherData.current.temp.toFixed(1)} °C</Text>
-            <Text>Feels Like: {weatherData.current.feels_like.toFixed(1)} °C</Text>
-            <Text>Prob of Rain: {(weatherData.daily[0].pop * 100).toFixed(1)} %</Text>
-            <Text>Cloud Coverage: {weatherData.current.clouds.toFixed(1)} %</Text>
-            <Text>Wind Speed: {(weatherData.current.wind_speed * 3.6).toFixed(1)} km/h</Text>
-          </View>
-        )} */}
-        
+      <Header handleBackHome={handleBackHome} />
         {morningForecast && eveningForecast && (
-          <View style={styles.weatherContainer}>
-            <Text style={styles.weatherTitle}>Outfit Recommendation:</Text>
-            <Text>Upper Part: {getOutfitRecommendation(morningForecast, eveningForecast).upperPart}</Text>
-            <Text>Lower Part: {getOutfitRecommendation(morningForecast, eveningForecast).lowerPart}</Text>
-            <Text>Waterproof Pants: {getOutfitRecommendation(morningForecast, eveningForecast).waterproofPants}</Text>
-            <Text>Gloves: {getOutfitRecommendation(morningForecast, eveningForecast).gloves}</Text>
+          <View>
+            <View>
+              <Text style={styles.outfitTitle}>Outfit Recommendation:</Text>
+            </View>
+            <View style={styles.iconsContainer}>
+              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Short sleeve' && <Image source={require('./assets/icons/upper-short.png')} style={styles.outfitImage} />}
+              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Thin second layer' && <Image source={require('./assets/icons/upper-long.png')} style={styles.outfitImage} />}
+              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Thin waterproof second layer' && <Image source={require('./assets/icons/upper-long-w.png')} style={styles.outfitImage} />}
+              {getOutfitRecommendation(morningForecast, eveningForecast).upperPart === 'Thick second layer' && <Image source={require('./assets/icons/upper-jacket.png')} style={styles.outfitImage} />}
+
+              {getOutfitRecommendation(morningForecast, eveningForecast).lowerPart === 'Short pants' && <Image source={require('./assets/icons/lower-short.png')} style={styles.outfitImage} />}
+              {getOutfitRecommendation(morningForecast, eveningForecast).lowerPart === 'Long pants' && <Image source={require('./assets/icons/lower-long.png')} style={styles.outfitImage} />}
+              
+              {getOutfitRecommendation(morningForecast, eveningForecast).waterproofPants === 'Yes at 9AM' && <Image source={require('./assets/icons/lower-long-w.png')} style={styles.outfitImage} />}
+              {getOutfitRecommendation(morningForecast, eveningForecast).waterproofPants === 'Yes at 9AM and 5PM' && <Image source={require('./assets/icons/lower-long-w.png')} style={styles.outfitImage} />}
+              {getOutfitRecommendation(morningForecast, eveningForecast).waterproofPants === 'Yes at 5PM' && <Image source={require('./assets/icons/lower-long-w-5PM.png')} style={styles.outfitImage} />}
+
+              {getOutfitRecommendation(morningForecast, eveningForecast).gloves === 'Yes' && <Image source={require('./assets/icons/gloves.png')} style={styles.outfitImage} />}
+            </View>
           </View>
         )}
 
@@ -223,6 +231,20 @@ export default function App() {
           </View>
         )}
 
+        {/* // Card showing current weather    */}
+        {/* {weatherData && (
+          <View style={styles.weatherContainer}>
+            <WeatherIcon iconCode={weatherData.current.weather[0].icon} />
+            <Text style={styles.weatherTitle}>Current Weather:</Text>
+            <Text style={styles.weatherDescription}>{weatherData.current.weather[0].main} - {capitalize(weatherData.current.weather[0].description)}</Text>
+            <Text>Temperature: {weatherData.current.temp.toFixed(1)} °C</Text>
+            <Text>Feels Like: {weatherData.current.feels_like.toFixed(1)} °C</Text>
+            <Text>Prob of Rain: {(weatherData.daily[0].pop * 100).toFixed(1)} %</Text>
+            <Text>Cloud Coverage: {weatherData.current.clouds.toFixed(1)} %</Text>
+            <Text>Wind Speed: {(weatherData.current.wind_speed * 3.6).toFixed(1)} km/h</Text>
+          </View>
+        )} */}
+
         {weatherData && (
           <View style={styles.minMaxContainer}>
             <View style={styles.dataRow}>
@@ -235,7 +257,20 @@ export default function App() {
               </View> 
           </View>
         )}
-      <Btn onPress={handlePress} title='Ready To Go!' />
+      {goingToWorkBtn && (
+        <Btn onPress={handlePress} title='Going to work!' />
+      )}
+
+      {isLoading && (
+        <ActivityIndicator style={styles.activityIndicator} size='large' color='#FE633D' />
+      )}
+      
+      {morningForecast && eveningForecast && (
+            <Btn onPress={handleBackHome} title='Back Home' />
+      )}
+
+      
+      {/* <Btn onPress={handlePressGoOut} title='Going Out Now!' /> */}
     </View>
   );
 }
@@ -271,6 +306,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: 'center',
   },
+  outfitTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    textAlign: 'center',
+  },
   weatherTitle: {
     fontSize: 16, 
     fontWeight: 'bold',
@@ -290,5 +331,19 @@ const styles = StyleSheet.create({
   },
   bodyData: {
     fontWeight: 'bold',
+  },
+  iconsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  outfitImage: {
+    width: 60,
+    height: 60,
+    marginTop: 10,
+    marginLeft: 5,
+    marginRight: 5,
+  },
+  activityIndicator: {
+    marginTop: 40,
   },
 });
