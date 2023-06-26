@@ -128,11 +128,11 @@ export default function App() {
     // Upper part
     if (morningForecast.temp > 21 || (morningForecast.temp > 19 && eveningForecast.temp > 26) || eveningForecast.temp > 28) {
       outfit.upperPart = 'Short sleeve';
-    } else if (morningForecast.temp >= 12 && morningForecast.temp <= 21 || eveningForecast.temp < 20) {
+    } else if (morningForecast.temp >= 14 && morningForecast.temp <= 21 || eveningForecast.temp < 21) {
       outfit.upperPart = 'Thin second layer';
-    } else if ((morningForecast.weather[0].id.toString().startsWith('3') || morningForecast.weather[0].id.toString().startsWith('5') || morningForecast.weather[0].id.toString().startsWith('6')) && morningForecast.temp > 15 || eveningForecast.pop > 0.6) {
+    } else if ((morningForecast.weather[0].id.toString().startsWith('3') || morningForecast.weather[0].id.toString().startsWith('5') || morningForecast.weather[0].id.toString().startsWith('6')) && morningForecast.temp > 15 || eveningForecast.pop > 0.7) {
       outfit.upperPart = 'Thin waterproof second layer';
-    } else if (morningForecast.temp < 12) {
+    } else if (morningForecast.temp < 14) {
       outfit.upperPart = 'Thick second layer';
     }
   
@@ -152,7 +152,7 @@ export default function App() {
     }
   
     // Gloves
-    if (morningForecast.temp < 8) {
+    if (morningForecast.temp < 10) {
       outfit.gloves = 'Yes';
     }
   
@@ -171,16 +171,16 @@ export default function App() {
     // Upper part
     if (currentData.current.temp > 21) {
       outfit.upperPart = 'Short sleeve';
-    } else if (currentData.current.temp >= 12 && currentData.current.temp <= 21) {
+    } else if (currentData.current.temp >= 15 && currentData.current.temp <= 21) {
       outfit.upperPart = 'Thin second layer';
     } else if ((currentData.current.weather[0].id.toString().startsWith('3') || currentData.current.weather[0].id.toString().startsWith('5') || currentData.current.weather[0].id.toString().startsWith('6')) && currentData.current.temp > 15) {
       outfit.upperPart = 'Thin waterproof second layer';
-    } else if (currentData.current.temp < 12) {
+    } else if (currentData.current.temp < 15) {
       outfit.upperPart = 'Thick second layer';
     }
   
     // Long pants or short pants
-    if (currentData.current.temp > 21) {
+    if (currentData.current.temp > 24) {
       outfit.lowerPart = 'Short pants';
     } else {
       outfit.lowerPart = 'Long pants';
@@ -192,7 +192,7 @@ export default function App() {
     }
   
     // Gloves
-    if (currentData.current.temp < 8) {
+    if (currentData.current.temp < 6) {
       outfit.gloves = 'Yes';
     }
   
@@ -322,6 +322,7 @@ export default function App() {
               </View>
             </View>
           )}
+        
 
         {/* // Card showing current weather    */}
         {currentData && (
@@ -339,7 +340,7 @@ export default function App() {
             </View>     
             <View style={styles.dataRow}>
               <Text style={styles.bodyText}>PoP: </Text>
-              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].pop * 100)}]}>{(currentData.daily[0].pop * 100).toFixed(1)} °C</Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getPrecipitationColor(currentData.daily[0].pop * 100)}]}>{(currentData.daily[0].pop * 100).toFixed(1)} °C</Text>
             </View> 
             <Text>Clouds: {currentData.current.clouds.toFixed(0)} %</Text>
             <Text>Wind: {(currentData.current.wind_speed * 3.6).toFixed(1)} km/h</Text>
@@ -350,26 +351,26 @@ export default function App() {
         {currentData && (
           <View style={styles.minMaxContainer}>
             <View style={styles.dataRow}>
-                <Text style={styles.bodyText}>Min Temperature: </Text>
-                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].temp.min)}]}>{currentData.daily[0].temp.min.toFixed(1)} °C</Text>
-              </View>              
-              <View style={styles.dataRow}>
-                <Text style={styles.bodyText}>Max Temperature: </Text>
-                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].temp.max)}]}>{currentData.daily[0].temp.max.toFixed(1)} °C</Text>
-              </View> 
+              <Text style={styles.bodyText}>Max Temperature: </Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].temp.max)}]}>{currentData.daily[0].temp.max.toFixed(1)} °C</Text>
+            </View> 
+            <View style={styles.dataRow}>
+              <Text style={styles.bodyText}>Min Temperature: </Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(currentData.daily[0].temp.min)}]}>{currentData.daily[0].temp.min.toFixed(1)} °C</Text>
+            </View>                
           </View>
         )}
 
         {weatherData && (
-          <View style={styles.minMaxContainer}>
+          <View style={styles.minMaxContainer}>             
             <View style={styles.dataRow}>
-                <Text style={styles.bodyText}>Min Temperature: </Text>
-                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(weatherData.daily[0].temp.min)}]}>{weatherData.daily[0].temp.min.toFixed(1)} °C</Text>
-              </View>              
-              <View style={styles.dataRow}>
-                <Text style={styles.bodyText}>Max Temperature: </Text>
-                <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(weatherData.daily[0].temp.max)}]}>{weatherData.daily[0].temp.max.toFixed(1)} °C</Text>
-              </View> 
+              <Text style={styles.bodyText}>Max Temperature: </Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(weatherData.daily[0].temp.max)}]}>{weatherData.daily[0].temp.max.toFixed(1)} °C</Text>
+            </View> 
+            <View style={styles.dataRow}>
+              <Text style={styles.bodyText}>Min Temperature: </Text>
+              <Text style={[styles.bodyText, styles.bodyData, {color: getTemperatureColor(weatherData.daily[0].temp.min)}]}>{weatherData.daily[0].temp.min.toFixed(1)} °C</Text>
+            </View> 
           </View>
         )}
       {goingToWorkBtn && (
@@ -441,7 +442,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 10,
-    textAlign: 'left',
+    textAlign: 'center',
+    minHeight: 35,
   },
   dataRow: {
     flexDirection: 'row',
